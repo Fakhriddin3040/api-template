@@ -16,10 +16,10 @@ services:
       REDIS_PORT: 6379
       TELEMETRY_SERVICE: api
     volumes:
-      - .:/code
-      - media:/code/media
+      - .:/app
+      - media:/app/media
       # Shared with the telemetry service: the daemon tails what the API writes.
-      - logs:/code/logs
+      - logs:/app/logs
     ports:
       - "${APP_PORT:-8000}:8000"
 
@@ -33,13 +33,13 @@ services:
       POSTGRES_PORT: 5432
       TELEMETRY_SERVICE: telemetry
     volumes:
-      - .:/code
-      - logs:/code/logs
+      - .:/app
+      - logs:/app/logs
 
   nginx:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - media:/code/media:ro
+      - media:/app/media:ro
     ports:
       - "${NGINX_PORT:-80}:80"
 

@@ -2,7 +2,7 @@ import base64
 from datetime import tzinfo
 from functools import cached_property
 from pathlib import Path
-from typing import Tuple
+from typing import ClassVar, Tuple
 
 from pydantic import Field, field_validator
 from pydantic_settings import SettingsConfigDict
@@ -38,22 +38,21 @@ class AppConfig(BasePydanticConfig):
     # "none" otherwise — see `cors_origins`.
     cors_allowed_origins: str = Field(default="")
 
-    # Static.
+    # Static layout — ClassVar, not fields.
     #
-    # ``media`` is the storage *root*; the paths stored on a blob row are
+    # ``MEDIA`` is the storage *root*; the paths stored on a blob row are
     # relative to it. Keeping the root out of the stored value is what lets
     # readers build a URL with ``make_media_full_url``
     # (-> ``https://host/media/<stored>``) and lets the root move without
     # rewriting every row.
     #
-    # Not settings: they are structural, and a deployment that moves them would
-    # orphan every stored path.
-    app_root: Path = Field(
-        default=Path(__file__).parent.parent.parent.parent.parent, frozen=True
-    )
-    media: Path = Field(default=Path("media"), init=False, frozen=True)
-    file_path: Path = Field(default=Path("files"), init=False, frozen=True)
-    image_path: Path = Field(default=Path("images"), init=False, frozen=True)
+    # Deliberately not settings: a deployment that moved them would orphan every
+    # stored path. As fields they would also mint four phantom variables
+    # (``APP_APP_ROOT``, ``APP_MEDIA``, ...) that nothing is meant to set.
+    APP_ROOT: ClassVar[Path] = Path(__file__).parent.parent.parent.parent.parent
+    MEDIA: ClassVar[Path] = Path("media")
+    FILE_PATH: ClassVar[Path] = Path("files")
+    IMAGE_PATH: ClassVar[Path] = Path("images")
 
     @field_validator("aes_key", mode="before")
     def secret_key_validator(cls, v) -> bytes:
@@ -97,7 +96,17 @@ class AppConfig(BasePydanticConfig):
     @property
     def media_root(self) -> Path:
         """Absolute on-disk directory the stored relative paths resolve against."""
-        return self.app_root / self.media
+        return self.APP_ROOT / self.MEDIA
+
+    @property
+    def file_path(self) -> Path:
+        """Where RAW blobs live, relative to the media root."""
+        return self.FILE_PATH
+
+    @property
+    def image_path(self) -> Path:
+        """Where images and their variants live, relative to the media root."""
+        return self.IMAGE_PATH
 
     @cached_property
     def tzinfo(self) -> tzinfo:

@@ -4,9 +4,9 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-: "${PROJECT_DIR:?PROJECT_DIR is not set}"
+: "${APP_DIR:?APP_DIR is not set}"
 
-cd "${PROJECT_DIR}"
+cd "${APP_DIR}"
 
 mkdir -p media/images media/files logs
 

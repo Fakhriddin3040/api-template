@@ -3,9 +3,9 @@
 set -o errexit
 set -o nounset
 
-: "${PROJECT_DIR:?PROJECT_DIR is not set}"
+: "${APP_DIR:?APP_DIR is not set}"
 
-cd "${PROJECT_DIR}"
+cd "${APP_DIR}"
 
 echo "Starting telemetry daemon (log_dir=${TELEMETRY_LOG_DIR:-logs})"
 

@@ -55,6 +55,34 @@ class TestConfigConventions:
         assert config_cls.model_config["extra"] == "ignore"
 
 
+class TestAppConfigSurface:
+    def test_exposes_only_real_settings(self):
+        """Structural layout must not leak into the environment.
+
+        `app_root`/`media` were fields once, which minted `APP_APP_ROOT`,
+        `APP_MEDIA`, `APP_FILE_PATH` and `APP_IMAGE_PATH` — four variables
+        nothing is meant to set, and one of them absurdly named.
+        """
+        assert set(AppConfig.model_fields) == {
+            "environment",
+            "secret_key",
+            "domain",
+            "timezone",
+            "aes_key",
+            "cors_allowed_origins",
+        }
+
+    def test_container_directory_variable_is_ignored(self, monkeypatch):
+        """`APP_DIR` is the container's working directory, set in the Dockerfile.
+
+        It shares the `APP_` namespace, so the config must ignore it rather than
+        fail on an unknown field.
+        """
+        monkeypatch.setenv("APP_DIR", "/app")
+
+        assert AppConfig().environment == "development"
+
+
 class TestAppConfigDerivations:
     """The single-source-of-truth properties other code builds URLs from."""
 
