@@ -70,27 +70,25 @@ class UserUpdateMeCommandHandler:
 
         user_id = ExecutionContextProvider.get_context().user_id
 
+        # Built before the transaction opens: a malformed value should raise
+        # without having started one.
+        param = UserUpdateParams(
+            first_name=message.first_name,
+            last_name=message.last_name,
+            phone=message.phone,
+            address=message.address,
+            description=message.description,
+            information=message.information,
+            avatar_id=message.avatar_id,
+        )
+
         async with self._uow:
             user = await self._user_repo.get_aggregate_for_update(id_=user_id)
 
             if user is None:
                 return Result.err([_not_found()])
 
-            update_res = user.update(
-                UserUpdateParams(
-                    first_name=message.first_name,
-                    last_name=message.last_name,
-                    phone=message.phone,
-                    address=message.address,
-                    description=message.description,
-                    information=message.information,
-                    avatar_id=message.avatar_id,
-                )
-            )
-
-            if update_res.is_err():
-                await self._uow.rollback()
-                return Result.err(update_res.unwrap_err())
+            user.update(param)
 
         return Result.OK
 

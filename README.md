@@ -182,7 +182,29 @@ contexts never collide on a generic name. Names live in one enum:
 
 **Results, not exceptions, for expected failures.** Handlers return
 `Result[T, list[AppExceptionDetail]]`; controllers turn a failed result into an
-`AppException`. Exceptions are for the unexpected.
+`AppException`. Exceptions are for the unexpected — plus validation, below.
+
+**Validation is pydantic, everywhere.** There is no bespoke rule engine. A domain
+operation takes a `DomainParams` DTO (frozen, `extra="forbid"`) whose fields are
+annotated with the domain's own value types from
+`domain/identity/params/annotated.py`:
+
+```python
+class UserCreateParams(DomainParams):
+    email: ATUserEmail
+    first_name: ATUserName
+    phone: Optional[ATPhone] = None
+```
+
+Constructing one validates it, so an aggregate never re-checks a field — it holds
+only the invariants that span several. Factories therefore return the aggregate
+directly rather than a `Result`. A bad value raises `ValidationError`, which the
+exception middleware renders as a 422 `{"field": "message"}`.
+
+The same annotated types annotate the application's commands, so a rule is
+written once and enforced at every entry point. When you add a value type, wrap
+any custom check in `AfterValidator` — a bare callable in `Annotated` is metadata
+and pydantic silently ignores it.
 
 **One transaction per handler**, opened with `async with self._uow`. Repositories
 never commit.

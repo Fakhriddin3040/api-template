@@ -1,6 +1,6 @@
 from typing import Optional
 
-from src.app.application.identity.validators.annotations import (
+from src.app.domain.identity.params.annotated import (
     ATAddress,
     ATOtp,
     ATPassword,

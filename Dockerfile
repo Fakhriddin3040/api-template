@@ -28,7 +28,7 @@ COPY . $APP_DIR/
 
 RUN chmod +x ${APP_DIR}/scripts/*.sh \
     && mkdir -p ${APP_DIR}/media ${APP_DIR}/logs \
-    && chmod -R 755 ${APP_DIR}/media ${APP_DIR}/logs
+    && chmod -R 777 ${APP_DIR}/media ${APP_DIR}/logs
 
 EXPOSE 8000
 

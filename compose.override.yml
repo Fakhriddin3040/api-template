@@ -44,9 +44,14 @@ services:
       - "${NGINX_PORT:-80}:80"
 
   db:
+    build:
+      context: postgres
+      dockerfile: ./Dockerfile
+
     env_file: [.env]
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
+      - ./logs/db:/logs
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
 

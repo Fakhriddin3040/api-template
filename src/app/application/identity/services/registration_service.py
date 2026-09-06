@@ -49,27 +49,17 @@ class UserRegistrationService(UserRegistrationServiceProto):
         self._uow = uow
 
     async def register(self, cmd: RegisterCommand) -> ResultDetailed[UserAggregate]:
-        user_res = UserAggregate.register(
+        user = UserAggregate.register(
             param=UserCreateParams(
                 email=cmd.email,
                 first_name=cmd.first_name,
                 last_name=cmd.last_name,
                 phone=cmd.phone,
                 address=cmd.address,
-                description=None,
-                information=None,
-                avatar_id=None,
-                email_confirmed=False,
-                last_login_time=None,
             ),
             source_factory=self._source_factory,
             clock=self._clock,
         )
-
-        if user_res.is_err():
-            return user_res
-
-        user = user_res.unwrap()
         user.set_password(cmd.password, self._password_service)
 
         self._user_repo.create(obj=user)

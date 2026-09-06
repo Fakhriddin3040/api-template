@@ -1,14 +1,24 @@
+"""Domain value types for identity.
+
+These live in the domain, not the application layer, because the constraints are
+the domain's: an email is an email whether it arrives from HTTP, a CLI seed or a
+test. Commands and domain params both annotate with them, so a rule is written
+once and enforced at every entry point.
+"""
+
 from typing import Annotated
 
-from pydantic import StringConstraints
+from pydantic import AfterValidator, StringConstraints
 
 from src.app.domain.identity.identity_constraints import (
     OTP_MAX_LENGTH,
     OTP_MIN_LENGTH,
     USER_ADDRESS_MAX_LENGTH,
+    USER_DESCRIPTION_MAX_LENGTH,
     USER_EMAIL_MAX_LENGTH,
     USER_EMAIL_MIN_LENGTH,
     USER_EMAIL_REGEX,
+    USER_INFORMATION_MAX_LENGTH,
     USER_NAME_MAX_LENGTH,
     USER_NAME_MIN_LENGTH,
     USER_NAME_REGEX,
@@ -27,7 +37,13 @@ type ATUserName = Annotated[
         max_length=USER_NAME_MAX_LENGTH,
         strip_whitespace=True,
     ),
-    regex_validator_factory(USER_NAME_REGEX, normalize=True),
+    # Must be wrapped in AfterValidator: a bare callable in the metadata is
+    # metadata, and pydantic ignores it — which is how this regex silently went
+    # unenforced before.
+    #
+    # Normalises unicode and strips zero-width characters before matching, so a
+    # name pasted from a rich-text editor is not rejected for invisible reasons.
+    AfterValidator(regex_validator_factory(USER_NAME_REGEX, normalize=True)),
 ]
 
 type ATUserEmail = Annotated[
@@ -37,6 +53,8 @@ type ATUserEmail = Annotated[
         max_length=USER_EMAIL_MAX_LENGTH,
         pattern=USER_EMAIL_REGEX.pattern,
         strip_whitespace=True,
+        # The login credential is looked up by exact match, so it is normalised
+        # on the way in rather than lower-cased at every call site.
         to_lower=True,
     ),
 ]
@@ -63,6 +81,14 @@ type ATPassword = Annotated[
 
 type ATAddress = Annotated[
     str, StringConstraints(max_length=USER_ADDRESS_MAX_LENGTH, strip_whitespace=True)
+]
+
+type ATDescription = Annotated[
+    str, StringConstraints(max_length=USER_DESCRIPTION_MAX_LENGTH)
+]
+
+type ATInformation = Annotated[
+    str, StringConstraints(max_length=USER_INFORMATION_MAX_LENGTH)
 ]
 
 type ATOtp = Annotated[

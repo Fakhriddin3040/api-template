@@ -1,4 +1,4 @@
-from src.app.application.identity.validators.annotations import (
+from src.app.domain.identity.params.annotated import (
     ATOtp,
     ATPassword,
     ATUserEmail,

@@ -16,7 +16,6 @@ from src.app.shared_kernel.ports.domain.entity_source_proto import EntitySourceP
 from src.app.shared_kernel.ports.factories.entity_source_factory import (
     EntitySourceFactoryProto,
 )
-from src.app.shared_kernel.ports.result import Result, ResultDetailed
 from src.app.shared_kernel.ports.security.password_proto import PasswordServiceProto
 from src.app.shared_kernel.ports.services import ClockProto
 
@@ -41,15 +40,15 @@ class UserAggregate(UserEntity, AggregateRoot):
         param: UserCreateParams,
         source_factory: EntitySourceFactoryProto,
         clock: ClockProto,
-    ) -> ResultDetailed[Self]:
+    ) -> Self:
         """Self-service signup. The account exists but cannot be used until the
         emailed code is confirmed — `is_active`/`status` are seeded inactive
-        together so the two never disagree."""
-        validation_res = param.validate()
+        together so the two never disagree.
 
-        if validation_res.is_err():
-            return validation_res
-
+        Returns the aggregate directly: `param` is already valid (pydantic
+        checked it at construction), and there is no cross-field invariant left
+        for this factory to reject.
+        """
         now = clock.get_now()
 
         kwargs = {
@@ -69,8 +68,7 @@ class UserAggregate(UserEntity, AggregateRoot):
             UserField.LAST_LOGIN_TIME: None,
         }
 
-        self = cls(source=source_factory.empty(cls, **kwargs))
-        return Result.ok(self)
+        return cls(source=source_factory.empty(cls, **kwargs))
 
     @classmethod
     def create(
@@ -79,13 +77,8 @@ class UserAggregate(UserEntity, AggregateRoot):
         source_factory: EntitySourceFactoryProto,
         clock: ClockProto,
         is_superuser: bool = False,
-    ) -> ResultDetailed[Self]:
+    ) -> Self:
         """An already-trusted user (CLI seed, fixture): active, email confirmed."""
-        validation_res = param.validate()
-
-        if validation_res.is_err():
-            return validation_res
-
         now = clock.get_now()
 
         kwargs = {
@@ -105,15 +98,9 @@ class UserAggregate(UserEntity, AggregateRoot):
             UserField.LAST_LOGIN_TIME: now,
         }
 
-        self = cls(source=source_factory.empty(cls, **kwargs))
-        return Result.ok(self)
+        return cls(source=source_factory.empty(cls, **kwargs))
 
-    def update(self, param: UserUpdateParams) -> ResultDetailed[None]:
-        validation_res = param.validate()
-
-        if validation_res.is_err():
-            return validation_res
-
+    def update(self, param: UserUpdateParams) -> None:
         self.first_name = param.first_name
         self.last_name = param.last_name
         self.phone = param.phone
@@ -121,8 +108,6 @@ class UserAggregate(UserEntity, AggregateRoot):
         self.description = param.description
         self.information = param.information
         self.avatar_id = param.avatar_id
-
-        return Result.OK
 
     def change_email(self, email: str) -> None:
         """Changing the email un-confirms it — the new address is unproven until

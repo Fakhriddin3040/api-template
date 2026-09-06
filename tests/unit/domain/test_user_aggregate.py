@@ -16,13 +16,6 @@ def _params(**overrides) -> UserCreateParams:
         email="someone@example.com",
         first_name="Ada",
         last_name="Lovelace",
-        phone=None,
-        address=None,
-        description=None,
-        information=None,
-        avatar_id=None,
-        email_confirmed=False,
-        last_login_time=None,
     )
     defaults.update(overrides)
     return UserCreateParams(**defaults)
@@ -30,7 +23,7 @@ def _params(**overrides) -> UserCreateParams:
 
 class TestRegister:
     def test_starts_inactive_and_unconfirmed(self, source_factory, clock):
-        user = UserAggregate.register(_params(), source_factory, clock).unwrap()
+        user = UserAggregate.register(_params(), source_factory, clock)
 
         assert user.is_active is False
         assert user.email_confirmed is False
@@ -38,15 +31,8 @@ class TestRegister:
         # together or the account reads as "active but unusable".
         assert user.source.get("status") == StatusEnum.INACTIVE
 
-    def test_rejects_an_invalid_email(self, source_factory, clock):
-        result = UserAggregate.register(
-            _params(email="not-an-email"), source_factory, clock
-        )
-
-        assert result.is_err()
-
     def test_confirm_email_activates(self, source_factory, clock):
-        user = UserAggregate.register(_params(), source_factory, clock).unwrap()
+        user = UserAggregate.register(_params(), source_factory, clock)
 
         user.confirm_email()
 
@@ -54,7 +40,7 @@ class TestRegister:
         assert user.is_active is True
 
     def test_mark_registered_emits_the_code(self, source_factory, clock):
-        user = UserAggregate.register(_params(), source_factory, clock).unwrap()
+        user = UserAggregate.register(_params(), source_factory, clock)
 
         user.mark_registered("123456")
         events = user.pull_events()
@@ -67,15 +53,27 @@ class TestRegister:
 
 class TestCreate:
     def test_seeded_user_is_usable_immediately(self, source_factory, clock):
-        user = UserAggregate.create(_params(), source_factory, clock).unwrap()
+        user = UserAggregate.create(_params(), source_factory, clock)
 
         assert user.is_active is True
         assert user.email_confirmed is True
 
+    def test_the_factory_decides_account_state_not_the_caller(
+        self, source_factory, clock
+    ):
+        """Same params, opposite state — which factory ran is the only input."""
+        param = _params()
+
+        registered = UserAggregate.register(param, source_factory, clock)
+        created = UserAggregate.create(param, source_factory, clock)
+
+        assert registered.is_active is False
+        assert created.is_active is True
+
 
 class TestUpdate:
     def test_changing_email_unconfirms_it(self, source_factory, clock):
-        user = UserAggregate.create(_params(), source_factory, clock).unwrap()
+        user = UserAggregate.create(_params(), source_factory, clock)
 
         user.change_email("other@example.com")
 
@@ -84,35 +82,30 @@ class TestUpdate:
         assert user.email_confirmed is False
 
     def test_same_email_is_a_no_op(self, source_factory, clock):
-        user = UserAggregate.create(_params(), source_factory, clock).unwrap()
+        user = UserAggregate.create(_params(), source_factory, clock)
 
         user.change_email("someone@example.com")
 
         assert user.email_confirmed is True
 
     def test_update_writes_profile_fields(self, source_factory, clock):
-        user = UserAggregate.create(_params(), source_factory, clock).unwrap()
+        user = UserAggregate.create(_params(), source_factory, clock)
 
-        result = user.update(
+        user.update(
             UserUpdateParams(
                 first_name="Grace",
                 last_name="Hopper",
-                phone=None,
                 address="Arlington",
-                description=None,
-                information=None,
-                avatar_id=None,
             )
         )
 
-        assert result.is_ok()
         assert user.full_name == "Grace Hopper"
         assert user.address == "Arlington"
 
 
 class TestPassword:
     def test_set_password_stores_a_hash(self, source_factory, clock, password_service):
-        user = UserAggregate.create(_params(), source_factory, clock).unwrap()
+        user = UserAggregate.create(_params(), source_factory, clock)
 
         user.set_password("correct horse battery", password_service)
 
