@@ -35,7 +35,10 @@ from src.app.modules.telemetry.integrations.litestar_middleware import (
     TelemetryMiddleware,
 )
 from src.app.modules.telemetry.logging import install_root_handler
-from src.app.utils.environment.env_utils import DeploymentEnvironment
+from src.app.utils.environment.env_utils import (
+    DeploymentEnvironment,
+    cors_allowed_origins,
+)
 from src.bootstrap import Bootstrap
 
 logger = logging.getLogger(__name__)
@@ -85,7 +88,7 @@ def litestar_app_factory() -> Litestar:
         route_handlers=[Router(path="", route_handlers=route_handlers)],
         lifespan=[lifespan],
         cors_config=CORSConfig(
-            allow_origins=DeploymentEnvironment.cors_allowed_origins(),
+            allow_origins=cors_allowed_origins(),
             allow_methods=["*"],
             allow_headers=["*"],
             allow_credentials=True,

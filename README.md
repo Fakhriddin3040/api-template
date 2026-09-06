@@ -14,7 +14,7 @@ context, not by rebuilding the plumbing.
 ```bash
 git clone <this> my-service && cd my-service
 cp .env.example .env
-python scripts/utils/generate_secret.py   # paste the two values into .env
+python scripts/utils/generate_secret.py   # paste the three secrets into .env
 
 # pick one
 uv sync --group dev
@@ -130,6 +130,43 @@ from the query string **only**, so any model with a path- or body-sourced field
 fails validation under it.
 
 ---
+
+## Configuration
+
+Every setting is `<PREFIX>_<FIELD>`, where the prefix names the config class that
+owns it. There are no unprefixed variables and no per-field aliases — if you can
+see a field on a config class, you already know its environment variable.
+
+| Prefix | Class | Holds |
+|---|---|---|
+| `APP_` | `AppConfig` | environment, domain, timezone, secrets, CORS |
+| `JWT_` | `JwtConfig` | signing key, algorithm, token lifetimes |
+| `POSTGRES_` | `DatabaseConfig` | connection |
+| `REDIS_` | `RedisConfig` | connection |
+| `SMTP_` | `SmtpConfig` | mailer |
+| `TELEMETRY_` | `TelemetryConfig` | service name, sinks, gates |
+| `TELEGRAM_` | `TelegramConfig` | alert routing |
+
+`BasePydanticConfig` owns the file/encoding/casing rules; a config subclass
+declares only its `env_prefix`, because pydantic merges `model_config` across the
+MRO. Adding a setting is one field — never a field plus an alias.
+
+**Ports are host ports.** `POSTGRES_PORT` is where postgres is published on your
+machine. Inside the compose network services talk on their standard ports (5432,
+6379, 8000, 80), which `compose.override.yml` sets for the containers. There is no
+"internal vs external port" pair to keep in sync, and the app's own listening
+port is not configurable at all.
+
+**One host, one variable.** `APP_DOMAIN` is the public host; the scheme follows
+`APP_ENVIRONMENT` (http while developing, https otherwise). `AppConfig.base_url`
+composes them, and `make_media_full_url` builds every media URL from that.
+
+`JWT_SECRET_KEY` is deliberately separate from `APP_SECRET_KEY`: rotating the
+token key should invalidate sessions without touching anything encrypted with the
+application secret.
+
+A group that only works complete is validated as such — setting `SMTP_HOST` without
+credentials fails at startup rather than on the first confirmation email.
 
 ## Conventions
 

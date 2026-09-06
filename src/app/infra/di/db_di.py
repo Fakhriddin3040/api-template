@@ -43,7 +43,7 @@ class DatabaseDIContainer(containers.DeclarativeContainer):
             # Pin the session timezone so `now()` and every timestamptz render
             # in the app's zone regardless of the server's locale.
             connect_args={
-                "server_settings": {"timezone": app_cfg().timezone_name}
+                "server_settings": {"timezone": app_cfg().timezone}
             },
             pool_pre_ping=True,
         ),

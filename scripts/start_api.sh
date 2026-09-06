@@ -13,9 +13,11 @@ mkdir -p media/images media/files logs
 echo "Applying database migrations..."
 alembic upgrade head
 
-echo "Starting API on port ${SERVER_PORT:-8000}"
+# 8000 is the in-container port and is not configurable: which host port it is
+# published on is a compose concern (APP_PORT), not the app's.
+echo "Starting API on port 8000"
 exec uvicorn src.config.asgi:app \
     --host 0.0.0.0 \
-    --port "${SERVER_PORT:-8000}" \
+    --port 8000 \
     --workers "${UVICORN_WORKERS:-1}" \
     --no-access-log

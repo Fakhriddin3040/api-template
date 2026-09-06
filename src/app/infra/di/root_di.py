@@ -20,7 +20,7 @@ class RootDIContainer(containers.DeclarativeContainer):
         config=config,
         services=providers.Container(
             CoreServicesDIContainer,
-            clock=providers.Singleton(Clock, tz_=config.app.provided.timezone),
+            clock=providers.Singleton(Clock, tz_=config.app.provided.tzinfo),
         ),
     )
 

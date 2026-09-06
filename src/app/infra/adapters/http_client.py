@@ -18,7 +18,7 @@ class HttpClient(HttpClientProto):
 
     def __init__(self) -> None:
         self._client = httpx.AsyncClient(
-            follow_redirects=True, verify=not DeploymentEnvironment.is_local()
+            follow_redirects=True, verify=not DeploymentEnvironment.should_debug()
         )
 
     async def is_alive(self, host: str, timeout: int = 5, use_tls: bool = True) -> bool:

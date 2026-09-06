@@ -43,7 +43,7 @@ class JwtProvider(JwtProviderProto):
         return jwt.encode(
             payload=payload.model_dump(mode="json"),
             key=self.config.secret_key,
-            algorithm=self.config.hash_algorithm,
+            algorithm=self.config.algorithm,
         )
 
     def is_valid_access_token(self, access_token: str) -> bool:
@@ -57,7 +57,7 @@ class JwtProvider(JwtProviderProto):
             decoded = jwt.decode(
                 jwt=token,
                 key=self.config.secret_key,
-                algorithms=self.config.hash_algorithm,
+                algorithms=self.config.algorithm,
                 **kwargs,
             )
             return JwtPayload(**decoded)

@@ -115,7 +115,7 @@ def install_root_handler(service: Optional[str] = None) -> None:
     dictConfig already installed an equivalent handler, so this is a no-op there.
     """
     if service:
-        os.environ.setdefault("SERVICE_NAME", service)
+        os.environ.setdefault("TELEMETRY_SERVICE", service)
 
     from src.app.modules.telemetry.logging.filter import MaskingLogFilter
 
