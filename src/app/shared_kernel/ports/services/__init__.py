@@ -1,0 +1,16 @@
+from datetime import datetime, tzinfo
+from typing import Protocol, Optional, runtime_checkable
+
+
+@runtime_checkable
+class ClockProto(Protocol):
+    @staticmethod
+    def get_utc() -> datetime: ...
+    @staticmethod
+    def get_utc_epoch() -> float: ...
+    def get_now(self, tz: Optional[tzinfo] = None) -> datetime: ...
+    def get_now_epoch(self, tz: Optional[tzinfo] = None) -> float: ...
+    def get_current_timezone(self) -> tzinfo: ...
+
+
+__all__ = ["ClockProto"]

@@ -1,0 +1,8 @@
+Alembic migrations.
+
+    alembic revision --autogenerate -m "add something"
+    alembic upgrade head
+    alembic downgrade -1
+
+The database URL is read from .env via the app's DatabaseConfig (see env.py);
+alembic.ini deliberately leaves sqlalchemy.url empty.

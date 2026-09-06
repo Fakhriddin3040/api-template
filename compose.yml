@@ -1,0 +1,55 @@
+# Base topology. `compose.override.yml` is picked up automatically and carries
+# the build context, env files, ports and volumes; keeping them apart means a
+# deployment can swap the override without touching this file.
+services:
+  api:
+    image: ${COMPOSE_PROJECT_NAME:-api_template}-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks: [backend]
+
+  telemetry:
+    image: ${COMPOSE_PROJECT_NAME:-api_template}-api
+    restart: unless-stopped
+    command: ./scripts/start_telemetry.sh
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [backend]
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on: [api]
+    networks: [backend]
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    healthcheck:
+      # The api's start script runs migrations immediately, so it must not start
+      # against a postgres that is still initialising.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [backend]
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    networks: [backend]
+
+networks:
+  backend:
+    driver: bridge
+    name: ${COMPOSE_PROJECT_NAME:-api_template}-backend
+
+volumes:
+  postgres_data:
+  media:
+  logs:
