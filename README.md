@@ -175,6 +175,9 @@ while staying unguessable. `uuid.uuid7()` is stdlib only on 3.14+; until then
 `shared_kernel/utils/functions/uuid_funcs.py` supplies it. Aggregates are stamped
 at construction, not at INSERT — a new aggregate can raise events referencing its
 own id without a flush.
+Event ids, trace ids and JWT `jti`s are v7 too. Every primary key also has a
+`server_default` of `uuidv7()`, so raw-SQL inserts (the telemetry writer) get
+one as well — that needs **PostgreSQL 18+**; the compose image is 18.6.
 
 **Tables carry a bounded-context prefix** (`identity_user`, `blob_object`), so two
 contexts never collide on a generic name. Names live in one enum:

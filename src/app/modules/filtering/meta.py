@@ -16,6 +16,36 @@ from src.app.modules.filtering.validator import FilterValidator
 
 RANGE_SEPARATOR = ","
 
+# Keys a 3.14+ class body uses for its lazily evaluated annotations (PEP 649/749).
+_ANNOTATE_KEYS = ("__annotate__", "__annotate_func__")
+
+
+def _namespace_annotations(namespace: dict) -> dict:
+    """The annotations of a class body that is still being created.
+
+    Before 3.14 the body stores them eagerly as ``__annotations__``. From 3.14
+    it stores an ``__annotate__`` function instead, and ``__annotations__`` is
+    absent until something evaluates it — reading only that key silently sees
+    no fields at all.
+    """
+    if "__annotations__" in namespace:
+        return dict(namespace["__annotations__"])
+
+    try:
+        import annotationlib
+    except ImportError:  # < 3.14
+        return {}
+
+    annotate = annotationlib.get_annotate_from_class_namespace(namespace)
+    if annotate is None:
+        return {}
+
+    return dict(
+        annotationlib.call_annotate_function(
+            annotate, annotationlib.Format.FORWARDREF
+        )
+    )
+
 
 def _split_range(value: Any) -> Any:
     """`"low,high"` -> `(low|None, high|None)`; anything else passes through
@@ -197,7 +227,7 @@ class FilterMeta(ModelMetaclass):
         return None
 
     def __new__(mcs, name, bases, namespace, **kwargs) -> Type:
-        annotations = namespace.get("__annotations__", {})
+        annotations = _namespace_annotations(namespace)
 
         for field_name, annotation in list(annotations.items()):
             spec = mcs._extract_spec(annotation)
@@ -227,5 +257,9 @@ class FilterMeta(ModelMetaclass):
             else:
                 namespace[field_name] = None
 
+        # The rewritten annotations are eager; drop the lazy function so nothing
+        # downstream evaluates the original, un-rewritten ones instead.
+        for key in _ANNOTATE_KEYS:
+            namespace.pop(key, None)
         namespace["__annotations__"] = annotations
         return super().__new__(mcs, name, bases, namespace, **kwargs)

@@ -1,12 +1,13 @@
 import time
 from dataclasses import dataclass, asdict
 from typing import TYPE_CHECKING, Optional, Tuple, Type
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from pydantic import Field
 
 from src.app.shared_kernel.data_structures.mappings import NamedDict
 from src.app.shared_kernel.pydantic.types import BasePydanticModel
+from src.app.shared_kernel.utils.functions.uuid_funcs import uuid7
 
 if TYPE_CHECKING:
     from src.app.shared_kernel.ports.event import EventHandlerFactoryProto
@@ -24,7 +25,7 @@ class BaseEvent(BasePydanticModel):
     BaseEvent representation model
     """
 
-    event_id: UUID = Field(default_factory=uuid4)
+    event_id: UUID = Field(default_factory=uuid7)
     occurred_on: float = Field(init=False, default_factory=time.time)
     order: int = 0
     meta: Optional[EventMeta] = None

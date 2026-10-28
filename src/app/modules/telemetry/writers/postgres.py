@@ -66,14 +66,14 @@ class PostgresWriter(AbstractWriter):
             f"INSERT INTO {table} "
             f"(trace_id, kind, service, level, ts, epoch, exec_ms, user_id, "
             f"ip, method, url, url_params, data, status_code, user_agent, message) VALUES "
-            f"($1::uuid, $2, $3, $4, to_timestamp($5), $5, $6, $7, $8, $9::inet, $10, $11, "
-            f"$12::jsonb, $13::jsonb, $14, $15, $16)"
+            f"($1::uuid, $2, $3, $4, to_timestamp($5), $5, $6, $7::uuid, $8::inet, $9, $10, "
+            f"$11::jsonb, $12::jsonb, $13, $14, $15)"
         )
         self._insert_returning_sql = self._insert_sql + " RETURNING id"
         self._traceback_insert_sql = (
             f"INSERT INTO {traceback_table} "
             f"(log_id, traceback) "
-            f"VALUES ($1::bigint, $2::TEXT)"
+            f"VALUES ($1::uuid, $2::TEXT)"
         )
 
     async def _on_start(self) -> None:

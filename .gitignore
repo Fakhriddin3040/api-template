@@ -13,12 +13,11 @@ celerybeat-schedule.dir
 *.so
 *.pyx
 *.c
-test.txt
+/test.txt
 test111.py
 .ruff_cache
 .mypy_cache
 media
-test.txt
 
 .env
 .idea

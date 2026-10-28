@@ -1,5 +1,4 @@
 from typing import Mapping, Type
-from uuid import uuid4
 
 from src.app.application.identity.dto.user_dto import OtpCreateDTO
 from src.app.application.identity.ports.services.otp_generator import OTPGenerator
@@ -29,6 +28,7 @@ from src.app.shared_kernel.types.base_types import ID_T
 from src.app.shared_kernel.utils.static_analys.assertion_funcs import (
     ensure_isimplementation,
 )
+from src.app.shared_kernel.utils.functions.uuid_funcs import uuid7
 
 # What each kind announces once it is confirmed. Adding a kind to this map is the
 # whole cost of supporting a new confirmation.
@@ -179,7 +179,7 @@ class UserConfirmationService(UserConfirmationServiceProto):
 
         await self._bus.publish(
             event_type(
-                event_id=uuid4(),
+                event_id=uuid7(),
                 aggregate_id=found.content_id,
                 target_value=found.target_value,
             )

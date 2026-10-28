@@ -1,5 +1,3 @@
-from uuid import uuid4
-
 from src.app.application.identity.commands.auth_commands import RegisterCommand
 from src.app.application.identity.ports.services.registration_service_ports import (
     ForgotPasswordServiceProto,
@@ -23,6 +21,7 @@ from src.app.shared_kernel.ports.services import ClockProto
 from src.app.shared_kernel.utils.static_analys.assertion_funcs import (
     ensure_isimplementation,
 )
+from src.app.shared_kernel.utils.functions.uuid_funcs import uuid7
 
 
 class UserRegistrationService(UserRegistrationServiceProto):
@@ -100,7 +99,7 @@ class ForgotPasswordService(ForgotPasswordServiceProto):
 
         user_aggr.add_domain_event(
             ForgotPasswordStep1Event(
-                event_id=uuid4(),
+                event_id=uuid7(),
                 aggregate_id=user_aggr.id,
                 recipient=user_aggr.email,
                 otp_code=otp_res.unwrap(),
@@ -116,7 +115,7 @@ class ForgotPasswordService(ForgotPasswordServiceProto):
 
         user_aggr.add_domain_event(
             ForgotPasswordStep2Event(
-                event_id=uuid4(),
+                event_id=uuid7(),
                 aggregate_id=user_aggr.id,
                 recipient=user_aggr.email,
                 new_password=new_password,

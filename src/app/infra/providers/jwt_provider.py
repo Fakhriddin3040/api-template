@@ -1,6 +1,5 @@
 import time
 from typing import Any, Dict, Optional
-from uuid import uuid4
 
 import jwt
 
@@ -15,6 +14,7 @@ from src.app.shared_kernel.constants.models_fields.identity_model_fields import 
     UserField,
 )
 from src.app.shared_kernel.ports.security.jwt_proto import JwtProviderProto
+from src.app.shared_kernel.utils.functions.uuid_funcs import uuid7
 
 
 class JwtProvider(JwtProviderProto):
@@ -68,7 +68,7 @@ class JwtProvider(JwtProviderProto):
         return {
             UserField.as_outref(): getattr(user, UserField.ID),
             JwtKeys.LAST_LOGIN_TIME: getattr(user, UserField.LAST_LOGIN_TIME, None),
-            JwtKeys.JTI: uuid4().hex,
+            JwtKeys.JTI: uuid7().hex,
         }
 
     @classmethod

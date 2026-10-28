@@ -114,7 +114,7 @@ gunicorn = ">=23.0.0,<24.0.0"
 [tool.ruff]
 line-length = 88
 target-version = "py312"
-exclude = ["migrations/versions"]
+extend-exclude = ["migrations/versions"]
 
 [tool.ruff.lint]
 # Correctness rules only. `UP` (pyupgrade) and `I` (import sorting) are left off

@@ -57,7 +57,11 @@ class LogRecordOrmModel(SqlAlchemyBaseModel):
     message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=func.now()
+        # Server-side too: the writer inserts through raw asyncpg.
+        DateTime(timezone=True),
+        nullable=False,
+        default=func.now(),
+        server_default=func.now(),
     )
 
     __table_args__ = (
@@ -78,6 +82,7 @@ class LogRecordTracebackOrmModel(SqlAlchemyBaseModel):
         PG_UUID(as_uuid=True),
         ForeignKey(
             DatabaseTable.TELEMETRY_LOG.as_foreign_key,
+            ondelete="CASCADE",
             name=db_identifier(
                 f"pk_{__tablename__}__log_id__{DatabaseTable.TELEMETRY_LOG}__id"
             ),

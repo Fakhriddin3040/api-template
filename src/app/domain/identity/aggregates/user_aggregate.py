@@ -1,5 +1,4 @@
 from typing import Self
-from uuid import uuid4
 
 from src.app.domain.identity.events import UserRegisteredEvent
 from src.app.domain.identity.params.user_params import (
@@ -18,6 +17,7 @@ from src.app.shared_kernel.ports.factories.entity_source_factory import (
 )
 from src.app.shared_kernel.ports.security.password_proto import PasswordServiceProto
 from src.app.shared_kernel.ports.services import ClockProto
+from src.app.shared_kernel.utils.functions.uuid_funcs import uuid7
 
 
 class UserAggregate(UserEntity, AggregateRoot):
@@ -142,7 +142,7 @@ class UserAggregate(UserEntity, AggregateRoot):
 
         self.add_domain_event(
             event=UserRegisteredEvent(
-                event_id=uuid4(),
+                event_id=uuid7(),
                 aggregate_id=self.id,
                 recipient=self.email,
                 otp_code=otp_code,

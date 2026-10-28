@@ -1,5 +1,5 @@
 from typing import Optional, TypedDict
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 from urllib3.util import Url
@@ -8,6 +8,7 @@ from src.app.modules.filtering.types import FilterSpecCollection
 from src.app.shared_kernel.pydantic.types import BasePydanticModel
 from src.app.shared_kernel.types.base_types import ID_T
 from src.app.shared_kernel.types.entities import UserBase
+from src.app.shared_kernel.utils.functions.uuid_funcs import uuid7
 
 
 class ExecutionContextRequest(TypedDict):
@@ -20,7 +21,7 @@ class ExecutionContextPayload(BasePydanticModel):
 
 
 class ExecutionContext(BaseModel):
-    trace_id: UUID = Field(default_factory=uuid4)
+    trace_id: UUID = Field(default_factory=uuid7)
     # A detached ``UserOnContextDTO`` (plain values) - reading its attributes never
     # touches a session, so the context is safe to read after a rollback / close.
     user: Optional[UserBase | None] = Field(default=None)
